@@ -36,6 +36,9 @@ def load_data():
         ds = ds.rio.write_crs("EPSG:4326")
     return ds
 
+st.write("NetCDF exists?", os.path.exists(netcdf_filepath))
+st.write("File size:", os.path.getsize(netcdf_filepath) if os.path.exists(netcdf_filepath) else "N/A")
+
 ds = load_data()
 
 # Heat Index calculation
