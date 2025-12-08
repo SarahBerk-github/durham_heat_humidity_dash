@@ -1,8 +1,10 @@
 streamlit
 xarray
+netCDF4
 rioxarray
 numpy
 geopy
 plotly
 pillow
 gdown
+pandas
