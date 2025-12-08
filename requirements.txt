@@ -1,0 +1,8 @@
+streamlit
+xarray
+rioxarray
+numpy
+geopy
+plotly
+pillow
+gdown
