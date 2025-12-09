@@ -18,28 +18,186 @@ import io
 import base64
 import pandas as pd
 
-netcdf_filepath = "Durham_AT_RH_JulAug2024.nc"
+file_links = ["1R-lSasJ6PI2GZZqbM30-PRUXT6ZF6itx",
+"1naKjt4s8-16x0uJvz1UxiBnMYsuHDWNH",
+"1jE-T4AhVPZVVY6df5Wvi8DT090PGQuOI",
+"12ANvCDt0WGg_Jvs_DGzfWP1zvOfrs27r",
+"1br7k_bGpy8-yJBxiHPwy6AZ_xulHsQkJ",
+"1MG3EGNlEZAZr4ucxsaUYtsHC3q9sFH0D",
+"1ho84zLzT939gDlktdy2uLKtuvG_WiFA-",
+"1mR3_tqmYvxfU9I5aWa_7j5-eQfxhFbU6",
+"1ufrgKKkVbYMGb4m0R6IKtO7xZko_473B",
+"1ThWhE1Q4UVyWXXD73eW1Sf4NhwFISX_C",
+"1TOUZN3zxfhB38y571_hQ-WNzYZFpnbxU",
+"1bXtJDoUZHvjYLQByFLAzZN9xd0eT9MYd",
+"1OT2Is4mLH_Cpr4ztvMnyaVmVCDPrEwjj",
+"1EMJBUejsCbkjJqAxtla1fTQk4IHst0xz",
+"1fvYgvWuQsyL20ftf18vTFr0K2P7dDbTG",
+"1W09VKMyqKhJLLstL1oijTnr7kszgfh5a",
+"1y0PiZ9u7-lBC_rDviJ6aAfw7qrWXHCc3",
+"1XYs_26trNHRLW2S91vgc1PelOE0MLDsc",
+"1bWipSavKiXEL-YVCWUBM90tHC8FAXdmo",
+"10Kwi9XxYgtTuM_vxCVSMsS2-u5aRyFhY",
+"1ZylSEldHUW3e-Akesrf_Vre3RHiudY1f",
+"1KjWcwBvB2X-w1pH4u8vGXFLugo6U2QVG",
+"1KBcRNwFGsSI1WrbB1-9RVHGEJI71jL2j",
+"1q_fXNFfuE-Pz-iLGMmoQ-ZHaTOovg8n1",
+"1XxGeXxNN8KnTnIEnHFLodqYL5wv15aH-",
+"17yoX4m4zwRdIMk__VPpu8STvbQtE6AEB",
+"1Y-3wUMwxKcV-q5Oj0OQIvRSPKupSL1WQ",
+"1g53v9pWztFJdF02wp8h2bX_WY7OIRElR",
+"1oT3csOl6iwcGr3hCIXNNoeIDkDn0N6VA",
+"1pUzemvx_tx6dqoSdOMdrCxTJIhDcdnC_",
+"1lsnM8n0VNLnT_dy53gOYgVjKSz50cwe-",
+"1vzvRQkfj3E_id6oZo3SpBvFXXqDmmZD3",
+"1Oaweujm-RJT_ajxJKQh-6-yT3GtNHC-5",
+"1H-NHswuOvwXuNWi2HStZFVvTd7dmHZcP",
+"1SQDayaWFe6DnRyZ8RHpJzay_DaumcpLr",
+"1O-kIxe3jY3soirROze7x6oIu9Yhorpzy",
+"1ExtZ__dHyNP3gWmxRnHLgJr3yw8RpTDg",
+"1nIcxSlpP6l7UzR0pvr0lUpryY7IbPFmz",
+"1B6q9qXf04sMzvUKdcsuoMxbSpNgRFivr",
+"1w9Hu4vHHg_S0EW3G8vuS3THiIbzTRNbi",
+"1C99MibKPvnK3LKSlAOP-9TCGWzgQxM-e",
+"15x0Zc2Y8GC9uV9bYAOkO5JpXhqvLIg3I",
+"14N9kXlX9HrMVUG08sG9aJqi7-h7DsgBO",
+"1krJRxTGxAqQqy34DLkU_sycml3ZTKBI6",
+"1To5KU8cnA4LwcShSbfc3VqC3JEtSMz_Y",
+"1y4xL4g0S4UDA-jFFNR1eXJOebcIUsD9w",
+"17SDktuaOxgrr_eYPV_KYN_e8vee8bh2i",
+"1tr9P78BFvcIZcd3opNk4YETTJkeZM7fe",
+"1Ym2WBLH-AiE418TffYOD3FZHdREkP1VN",
+"1H0A6R5DaPtanQYTxdC00sA1rF7z5Px2a",
+"1HKnXK0Jjgc-XUoav_apYHvOh_hr_HH04",
+"1PQRkLjFG6zC_Vkk8JFTOLuaGrr-BB702",
+"1qvlrGGTDlau_NVi-rL4fAuEb8qmsVVIr",
+"1kATOYGcUVqcrryqVPpzk6j8Vn1JO7J65",
+"1VP9kUKBtWCv9121RQnBUe-v5fGo5TDOr",
+"1xzMb1m9zOxZEybYD04P4C8EADABKJoP9",
+"1QVw6WLUVEnXGrcCZKLghlOpFxIKXK_br",
+"1w3E0CCoJZLUoRzuONCYyAX3SCEgk_olU",
+"16KCWMZziCtYTnaPFtflKP17A7XM6Te9b",
+"1abZaM_i88_KxyUau0yMvjl51OqvmXDQC",
+"1a3JNtGNUc1EGkxN1r8939EkOKBzrZOBy",
+"1asoRQmCIiIE-NPYqPpwPXnSafL4VCc0H"]
 
-if not os.path.exists(netcdf_filepath):
-    url = "https://drive.google.com/uc?id=1PzwNpggeCcUy9ODf2wB4tJHrY2nonNbf" 
-    gdown.download(url, netcdf_filepath, quiet=False)
+filenames = ["Durham_AT_RH_20240701_20240701.nc",
+"Durham_AT_RH_20240831_20240831.nc",
+"Durham_AT_RH_20240830_20240830.nc",
+"Durham_AT_RH_20240829_20240829.nc",
+"Durham_AT_RH_20240828_20240828.nc",
+"Durham_AT_RH_20240827_20240827.nc",
+"Durham_AT_RH_20240826_20240826.nc",
+"Durham_AT_RH_20240825_20240825.nc",
+"Durham_AT_RH_20240824_20240824.nc",
+"Durham_AT_RH_20240823_20240823.nc",
+"Durham_AT_RH_20240822_20240822.nc",
+"Durham_AT_RH_20240821_20240821.nc",
+"Durham_AT_RH_20240820_20240820.nc",
+"Durham_AT_RH_20240819_20240819.nc",
+"Durham_AT_RH_20240818_20240818.nc",
+"Durham_AT_RH_20240817_20240817.nc",
+"Durham_AT_RH_20240816_20240816.nc",
+"Durham_AT_RH_20240815_20240815.nc",
+"Durham_AT_RH_20240814_20240814.nc",
+"Durham_AT_RH_20240813_20240813.nc",
+"Durham_AT_RH_20240812_20240812.nc",
+"Durham_AT_RH_20240811_20240811.nc",
+"Durham_AT_RH_20240810_20240810.nc",
+"Durham_AT_RH_20240809_20240809.nc",
+"Durham_AT_RH_20240808_20240808.nc",
+"Durham_AT_RH_20240807_20240807.nc",
+"Durham_AT_RH_20240806_20240806.nc",
+"Durham_AT_RH_20240805_20240805.nc",
+"Durham_AT_RH_20240804_20240804.nc",
+"Durham_AT_RH_20240803_20240803.nc",
+"Durham_AT_RH_20240802_20240802.nc",
+"Durham_AT_RH_20240801_20240801.nc",
+"Durham_AT_RH_20240731_20240731.nc",
+"Durham_AT_RH_20240730_20240730.nc",
+"Durham_AT_RH_20240729_20240729.nc",
+"Durham_AT_RH_20240728_20240728.nc",
+"Durham_AT_RH_20240727_20240727.nc",
+"Durham_AT_RH_20240726_20240726.nc",
+"Durham_AT_RH_20240725_20240725.nc",
+"Durham_AT_RH_20240724_20240724.nc",
+"Durham_AT_RH_20240723_20240723.nc",
+"Durham_AT_RH_20240722_20240722.nc",
+"Durham_AT_RH_20240721_20240721.nc",
+"Durham_AT_RH_20240720_20240720.nc",
+"Durham_AT_RH_20240719_20240719.nc",
+"Durham_AT_RH_20240718_20240718.nc",
+"Durham_AT_RH_20240717_20240717.nc",
+"Durham_AT_RH_20240716_20240716.nc",
+"Durham_AT_RH_20240715_20240715.nc",
+"Durham_AT_RH_20240714_20240714.nc",
+"Durham_AT_RH_20240713_20240713.nc",
+"Durham_AT_RH_20240712_20240712.nc",
+"Durham_AT_RH_20240711_20240711.nc",
+"Durham_AT_RH_20240710_20240710.nc",
+"Durham_AT_RH_20240709_20240709.nc",
+"Durham_AT_RH_20240708_20240708.nc",
+"Durham_AT_RH_20240707_20240707.nc",
+"Durham_AT_RH_20240706_20240706.nc",
+"Durham_AT_RH_20240705_20240705.nc",
+"Durham_AT_RH_20240704_20240704.nc",
+"Durham_AT_RH_20240703_20240703.nc",
+"Durham_AT_RH_20240702_20240702.nc"]
 
+FILE_MAP = dict(zip(filenames, file_links))
+
+# function for downloading the files
+def download_file(filename):
+    file_id = FILE_MAP[filename]
+    output_path = os.path.join("data_cache", filename)
+    os.makedirs("data_cache", exist_ok=True)
+
+    if not os.path.exists(output_path):
+        gdown.download(f"https://drive.google.com/uc?id={file_id}", output_path, quiet=False)
+
+    return output_path
+
+   
 st.set_page_config(page_title="Durham AT & RH Dashboard")
 st.title("Durham Heat Stress Explorer")
-st.write("Explore air temperature, relative humidity and heat index data for July–August 2024. Search for a location to see a timeseries 12 hours either side.")
+st.write("Explore air temperature, relative humidity and heat index data for July–August 2024. Search for a location to see its timeseries in comparison to the city mean.")
+
+#selected_date = st.date_input("Select Date", value=pd.to_datetime("2024-07-01"))
+# restrict the dates the calendar allows users to select 
+min_date = pd.to_datetime("2024-07-01")
+max_date = pd.to_datetime("2024-08-31")
+
+selected_date = st.date_input(
+    "Select Date",
+    value=min_date,       # default selection
+    min_value=min_date,   
+    max_value=max_date    
+)
+
+date_str = selected_date.strftime("%Y%m%d")
+
+# Find filename containing the date
+matching = [f for f in filenames if date_str in f]
+if not matching:
+    st.error("No file found for this date.")
+    st.stop()
+
+selected_filename = matching[0]
+netcdf_filepath = download_file(selected_filename)
+
 
 # Load data
 @st.cache_data
-def load_data():
-    ds = xr.open_dataset(netcdf_filepath)
+def load_data(path):
+    ds = xr.open_dataset(path)
     if not ds.rio.crs:
         ds = ds.rio.write_crs("EPSG:4326")
     return ds
 
-st.write("NetCDF exists?", os.path.exists(netcdf_filepath))
-st.write("File size:", os.path.getsize(netcdf_filepath) if os.path.exists(netcdf_filepath) else "N/A")
+#st.write("NetCDF exists?", os.path.exists(netcdf_filepath))
+#st.write("File size:", os.path.getsize(netcdf_filepath) if os.path.exists(netcdf_filepath) else "N/A")
 
-ds = load_data()
+ds = load_data(netcdf_filepath)
 
 # Heat Index calculation
 def compute_heat_index(T, R):
@@ -272,12 +430,11 @@ st.plotly_chart(fig, width='stretch')
 # Timeseries ±12 hours for selected location
 # -------------------------
 if lat is not None and lon is not None:
-    st.subheader("📈 Timeseries around selected time")
+    st.subheader("📈 Timeseries for Selected Day")
 
-    # Convert to pandas datetime
-    selected_time_pd = pd.to_datetime(time_selected)
-    start_time = selected_time_pd - pd.Timedelta(hours=12)
-    end_time = selected_time_pd + pd.Timedelta(hours=12)
+    selected_date = pd.to_datetime(time_selected).normalize()
+    start_time = selected_date
+    end_time = selected_date + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
 
     # Slice dataset by time first
     ds_slice = ds.sel(time=slice(start_time, end_time))
@@ -327,13 +484,13 @@ if lat is not None and lon is not None:
     ))
 
     # Vertical line at selected time
-    fig_ts.add_vline(
-        x=selected_time_pd,
-        line=dict(color="black", dash="dash")
-    )
+    #fig_ts.add_vline(
+     #   x=pd.to_datetime(time_selected),
+     #   line=dict(color="black", dash="dash")
+    #)
 
     fig_ts.update_layout(
-        title=f"{var_choice} from {start_time} to {end_time}",
+        title=f"{var_choice} on {selected_date.date()}",
         xaxis_title="Time",
         yaxis_title=f"{var_choice} ({units})",
         height=400
@@ -345,7 +502,7 @@ if lat is not None and lon is not None:
     st.download_button(
         label="Download timeseries CSV",
         data=csv,
-        file_name=f"{var_choice}_timeseries.csv",
+        file_name=f"{var_choice}_timeseries_{selected_date.date()}.csv",
         mime="text/csv"
     )
 
