@@ -17,6 +17,8 @@ from PIL import Image
 import io
 import base64
 import pandas as pd
+import requests
+
 
 file_links = ["1R-lSasJ6PI2GZZqbM30-PRUXT6ZF6itx",
 "1naKjt4s8-16x0uJvz1UxiBnMYsuHDWNH",
@@ -390,18 +392,59 @@ else:
 st.subheader("🔍 Find value at a specific location")
 user_location = st.text_input("Enter coordinates or address")
 lat = lon = None
+
+MAPBOX_TOKEN = st.secrets["MAPBOX_TOKEN"]
+
+def geocode_mapbox(query):
+    """Return (lat, lon, place_name) from Mapbox Geocoding API."""
+    url = f"https://api.mapbox.com/geocoding/v5/mapbox.places/{query}.json"
+    params = {
+        "access_token": MAPBOX_TOKEN,
+        "limit": 1,
+        "types": "address,place,locality,neighborhood,poi"
+    }
+
+    response = requests.get(url, params=params)
+
+    if response.status_code != 200:
+        st.error("Mapbox geocoding error.")
+        return None
+
+    data = response.json()
+    
+    if len(data["features"]) == 0:
+        st.error("No matching location found.")
+        return None
+
+    feature = data["features"][0]
+    lon, lat = feature["center"]
+    place_name = feature["place_name"]
+
+    return lat, lon, place_name
+
 if user_location:
-    geolocator = Nominatim(user_agent="durham_dashboard", timeout=10)
-    try:
-        location = geolocator.geocode(user_location)
-        if location:
-            lat, lon = location.latitude, location.longitude
-            st.success(f"Found location: {location.address}")
-            st.write(f"Lat: {lat:.4f}, Lon: {lon:.4f}")
-        else:
-            st.warning("Location not found")
-    except Exception as e:
-        st.error(f"Geocoding failed: {e}")
+    result = geocode_mapbox(user_location)
+    if result:
+        lat, lon, place_name = result
+        st.success(f"Found location: {place_name}")
+        st.write(f"Lat: {lat:.4f}, Lon: {lon:.4f}")
+
+
+
+
+# streamlit blocks Nominatim :'(
+#if user_location:
+#    geolocator = Nominatim(user_agent="durham_dashboard", timeout=10)
+#    try:
+#        location = geolocator.geocode(user_location)
+#        if location:
+#            lat, lon = location.latitude, location.longitude
+#            st.success(f"Found location: {location.address}")
+#            st.write(f"Lat: {lat:.4f}, Lon: {lon:.4f}")
+#        else:
+#            st.warning("Location not found")
+#    except Exception as e:
+#        st.error(f"Geocoding failed: {e}")
 
 if lat and lon:
     # add marker to the existing figure (works for both heatmap and px.imshow figs)
