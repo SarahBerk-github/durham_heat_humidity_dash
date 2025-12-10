@@ -10,7 +10,7 @@ import streamlit as st
 import xarray as xr
 import rioxarray
 import numpy as np
-from geopy.geocoders import Nominatim
+#from geopy.geocoders import Nominatim   # not using this anymore as streamlit doesn't allow
 import plotly.express as px
 import plotly.graph_objects as go
 from PIL import Image
@@ -148,6 +148,16 @@ filenames = ["Durham_AT_RH_20240701_20240701.nc",
 
 FILE_MAP = dict(zip(filenames, file_links))
 
+CITY_MEAN_FILE_ID = "1fIpNj2z8Krhhx2IPkht1zBWrXRzisroZ"
+CITY_MEAN_PATH = os.path.join("data_cache", "city_mean_hourly.csv")
+os.makedirs("data_cache", exist_ok=True)
+
+if not os.path.exists(CITY_MEAN_PATH):
+    gdown.download(f"https://drive.google.com/uc?id={CITY_MEAN_FILE_ID}", CITY_MEAN_PATH, quiet=False)
+
+city_mean_df = pd.read_csv(CITY_MEAN_PATH, parse_dates=["time"])
+city_mean_df.set_index("time", inplace=True)
+
 # function for downloading the files
 def download_file(filename):
     file_id = FILE_MAP[filename]
@@ -179,12 +189,12 @@ selected_date = st.date_input(
 date_str = selected_date.strftime("%Y%m%d")
 
 # clear the cache if the date has changed, stops the system from crashing 
-if "last_selected_date" not in st.session_state:
-    st.session_state.last_selected_date = selected_date
+#if "last_selected_date" not in st.session_state:
+#    st.session_state.last_selected_date = selected_date
 
-if selected_date != st.session_state.last_selected_date:
-    st.cache_data.clear()
-    st.session_state.last_selected_date = selected_date
+#if selected_date != st.session_state.last_selected_date:
+#    st.cache_data.clear()
+#    st.session_state.last_selected_date = selected_date
 
 
 # Find filename containing the date
@@ -196,17 +206,25 @@ if not matching:
 selected_filename = matching[0]
 netcdf_filepath = download_file(selected_filename)
 
-
 # Load data
 @st.cache_data
 def load_data(path):
-    ds = xr.open_dataset(path)
+    ds = xr.open_dataset(path, chunks = 'auto')
     if not ds.rio.crs:
         ds = ds.rio.write_crs("EPSG:4326")
     return ds
 
 #st.write("NetCDF exists?", os.path.exists(netcdf_filepath))
 #st.write("File size:", os.path.getsize(netcdf_filepath) if os.path.exists(netcdf_filepath) else "N/A")
+# clear the old net cdf from the cache, but not the csv of city means
+if "last_selected_file" not in st.session_state:
+    st.session_state.last_selected_file = None
+
+if st.session_state.last_selected_file != selected_filename:
+    # remove cached NetCDF for previous file
+    load_data.clear()
+    st.session_state.last_selected_file = selected_filename
+
 
 ds = load_data(netcdf_filepath)
 
@@ -366,10 +384,7 @@ if var_choice == "Heat Index":
     except FileNotFoundError:
         # satellite image missing — continue without it
         pass
-
-# -------------------------
-# Air Temp / RH branch (unchanged)
-# -------------------------
+#AT and Rh
 else:
     fig = px.imshow(
         da_small,
@@ -407,9 +422,7 @@ else:
         # satellite image missing — continue without it
         pass
 
-# -------------------------
-# Geolocation / value readout
-# -------------------------
+#geolocation
 st.subheader("🔍 Find value at a specific location")
 user_location = st.text_input("Enter coordinates or address")
 lat = lon = None
@@ -495,9 +508,8 @@ if lat and lon:
 
 st.plotly_chart(fig, width='stretch')
 
-# -------------------------
-# Timeseries ±12 hours for selected location
-# -------------------------
+
+# Timeseries for selected location
 if lat is not None and lon is not None:
     st.subheader("📈 Timeseries for Selected Day")
 
@@ -510,30 +522,28 @@ if lat is not None and lon is not None:
 
     # City mean and location series
     if var_choice == "Air Temperature":
-        city_series = ds_slice["air_temperature"].mean(dim=["x", "y"]) * 9/5 + 32
-        loc_series = ds_slice["air_temperature"].sel(
-            x=lon, y=lat, method="nearest"
-        ) * 9/5 + 32
+        city_series = city_mean_df["AT_F"]
+        city_series = city_series[city_series.index.normalize() == selected_date]
+        loc_series = ds_slice["air_temperature"].sel(x=lon, y=lat, method="nearest") * 9/5 + 32
         units = "°F"
 
     elif var_choice == "Relative Humidity":
-        city_series = ds_slice["relative_humidity"].mean(dim=["x", "y"])
-        loc_series = ds_slice["relative_humidity"].sel(
-            x=lon, y=lat, method="nearest"
-        )
+        city_series = city_mean_df["RH"]
+        city_series = city_series[city_series.index.normalize() == selected_date]
+        loc_series = ds_slice["relative_humidity"].sel(x=lon, y=lat, method="nearest")
         units = "%"
 
     else:  # Heat Index
-        T = ds_slice["air_temperature"] * 9/5 + 32
-        R = ds_slice["relative_humidity"]
-        HI = compute_heat_index(T, R)
-        city_series = HI.mean(dim=["x", "y"])
-        loc_series = HI.sel(x=lon, y=lat, method="nearest")
+        city_series = city_mean_df["HI_F"]
+        city_series = city_series[city_series.index.normalize() == selected_date]
+        T_loc = ds_slice["air_temperature"].sel(x=lon, y=lat, method="nearest") * 9/5 + 32
+        R_loc = ds_slice["relative_humidity"].sel(x=lon, y=lat, method="nearest")
+        loc_series = compute_heat_index(T_loc, R_loc)
         units = "°F"
 
     # Make DataFrame for Plotly
     df_ts = pd.DataFrame({
-        "time": city_series.time.values,
+        "time": loc_series.time.values,
         "City Mean": city_series.values,
         "Selected Location": loc_series.values
     })
