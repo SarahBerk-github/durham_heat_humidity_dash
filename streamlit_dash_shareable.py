@@ -207,7 +207,7 @@ netcdf_filepath = download_file(selected_filename)
 # Load data
 @st.cache_data
 def load_data(path):
-    ds = xr.open_dataset(path, chunks = 'auto')
+    ds = xr.open_dataset(path)#, chunks = 'auto') # having issues with dask import 
     if not ds.rio.crs:
         ds = ds.rio.write_crs("EPSG:4326")
     return ds
