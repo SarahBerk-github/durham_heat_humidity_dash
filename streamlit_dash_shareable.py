@@ -148,14 +148,12 @@ filenames = ["Durham_AT_RH_20240701_20240701.nc",
 
 FILE_MAP = dict(zip(filenames, file_links))
 
-CITY_MEAN_FILE_ID = "1fIpNj2z8Krhhx2IPkht1zBWrXRzisroZ"
-CITY_MEAN_PATH = os.path.join("data_cache", "city_mean_hourly.csv")
-os.makedirs("data_cache", exist_ok=True)
+#CITY_MEAN_FILE_ID = "1fIpNj2z8Krhhx2IPkht1zBWrXRzisroZ"
+#CITY_MEAN_PATH = os.path.join("data_cache", "city_mean_hourly.csv")
+#if not os.path.exists(CITY_MEAN_PATH):
+#    gdown.download(f"https://drive.google.com/uc?id={CITY_MEAN_FILE_ID}", CITY_MEAN_PATH, quiet=False)
 
-if not os.path.exists(CITY_MEAN_PATH):
-    gdown.download(f"https://drive.google.com/uc?id={CITY_MEAN_FILE_ID}", CITY_MEAN_PATH, quiet=False)
-
-city_mean_df = pd.read_csv(CITY_MEAN_PATH, parse_dates=["time"])
+city_mean_df = pd.read_csv("city_means_hourly.csv", parse_dates=["time"])
 city_mean_df.set_index("time", inplace=True)
 
 # function for downloading the files
