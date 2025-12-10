@@ -1,9 +1,5 @@
 ## code for the steamlit dash to be made sharable ##
 
-# link to where the netcdf is stored on DDL google drive 
-#https://drive.google.com/file/d/1PzwNpggeCcUy9ODf2wB4tJHrY2nonNbf/view?usp=sharing
-#file_id = '1PzwNpggeCcUy9ODf2wB4tJHrY2nonNbf'
-
 import gdown
 import os
 import streamlit as st
@@ -148,6 +144,13 @@ filenames = ["Durham_AT_RH_20240701_20240701.nc",
 
 FILE_MAP = dict(zip(filenames, file_links))
 
+# Durham bounding box 
+lon_min = -79.00747291257709
+lon_max = -78.75454745095128
+lat_min = 35.86640498625444
+lat_max = 36.13696655321311
+
+
 #CITY_MEAN_FILE_ID = "1fIpNj2z8Krhhx2IPkht1zBWrXRzisroZ"
 #CITY_MEAN_PATH = os.path.join("data_cache", "city_mean_hourly.csv")
 #if not os.path.exists(CITY_MEAN_PATH):
@@ -170,7 +173,7 @@ def download_file(filename):
    
 st.set_page_config(page_title="Durham AT & RH Dashboard")
 st.title("Durham Heat Stress Explorer")
-st.write("Explore air temperature, relative humidity and heat index data for July–August 2024. Search for a location to see its timeseries in comparison to the city mean.")
+st.write("Explore air temperature, relative humidity and heat index data for July–August 2024. Search for a location to see its timeseries and compare it to the city mean.")
 
 #selected_date = st.date_input("Select Date", value=pd.to_datetime("2024-07-01"))
 # restrict the dates the calendar allows users to select 
@@ -287,24 +290,22 @@ if downsample_factor > 1:
 else:
     da_small = da
 
-# coordinates for overlay (extent)
-lon_min, lon_max = float(da_small.x.min()), float(da_small.x.max())
-lat_min, lat_max = float(da_small.y.min()), float(da_small.y.max())
+# coordinates for overlay (extent) - instead of this, used durham bounding box, its at the top
+#lon_min, lon_max = float(da_small.x.min()), float(da_small.x.max())
+#lat_min, lat_max = float(da_small.y.min()), float(da_small.y.max())
 
 
 # Heat Index 
 if var_choice == "Heat Index":
     # categorize
     hi_cat = categorise_heat_index(da_small)          # DataArray of strings ("" for undefined)
-    # prepare numeric grid: 0..4 for categories, keep np.nan where empty
+    # prepare numeric grid
     hi_numeric = np.full(hi_cat.shape, np.nan, dtype=float)
     for idx, cat in enumerate(category_order):
         mask = (hi_cat.values == cat)
         hi_numeric[mask] = idx
 
-    # Build a valid Plotly colorscale for 5 discrete categories.
-    # must be normalized to [0,1] — we'll map integers 0..4.
-    # Use small eps to make sharp boundaries.
+    # Build plotly colorscale for 5  cats
     eps = 1e-6
     colorscale = [
         [0.0, hi_colors["No Warning"]],
@@ -323,7 +324,7 @@ if var_choice == "Heat Index":
         [ 1.0, hi_colors["Extreme Danger"] ],
     ]
 
-    # create heatmap. Use x/y coordinates so extents line up
+    # create heatmap, Use x/y coordinates so extents line up
     fig = go.Figure(go.Heatmap(
         z=hi_numeric,
         x=da_small.x.values,
@@ -348,7 +349,7 @@ if var_choice == "Heat Index":
     fig.update_layout(height=500, margin=dict(l=0, r=0, t=0, b=0))
 
     # Add categorical legend using dummy points (points in legend)
-    for level in category_order[::-1]:  # reverse so legend order looks natural
+    for level in category_order[::-1]:  # reverse
         # use a single invisible point with same color for legend
         fig.add_trace(go.Scatter(
             x=[None], y=[None],
@@ -357,7 +358,7 @@ if var_choice == "Heat Index":
             name=level,
             showlegend=True
         ))
-    # add static  image underneath 
+    # add static image underneath 
     try:
         bg_path = "durham_satellite_bbox.png" if basemap == "Satellite" else "durham_streets_bbox.png"
         bg_img = Image.open(bg_path)
@@ -379,7 +380,7 @@ if var_choice == "Heat Index":
         )
 
     except FileNotFoundError:
-        # satellite image missing — continue without it
+        # image missing — continue without it
         pass
 #AT and Rh
 else:
@@ -426,12 +427,6 @@ lat = lon = None
 
 MAPBOX_TOKEN = st.secrets["MAPBOX_TOKEN"]
 
-# Durham bounding box - want to limit the search to here
-lon_min = -79.00747291257709
-lon_max = -78.75454745095128
-lat_min = 35.86640498625444
-lat_max = 36.13696655321311
-
 def geocode_mapbox(query):
     """Return (lat, lon, place_name) from Mapbox Geocoding API."""
     url = f"https://api.mapbox.com/geocoding/v5/mapbox.places/{query}.json"
@@ -439,7 +434,7 @@ def geocode_mapbox(query):
         "access_token": MAPBOX_TOKEN,
         "limit": 1,
         "types": "address,place,locality,neighborhood,poi",
-         "bbox": f"{lon_min},{lat_min},{lon_max},{lat_max}"
+         "bbox": f"{lon_min},{lat_min},{lon_max},{lat_max}" # Durham bounding box - want to limit the search to here
     }
 
     response = requests.get(url, params=params)
@@ -483,8 +478,7 @@ if user_location:
 #        st.error(f"Geocoding failed: {e}")
 
 if lat and lon:
-    # add marker to the existing figure (works for both heatmap and px.imshow figs)
-    # for Plotly heatmap (x/y), fig.add_scatter works; for mapbox-based you'll need different code.
+    # add marker to the existing figure
     fig.add_scatter(
         x=[lon], y=[lat], mode="markers+text", text=["Selected Location"],
         textposition="top right",
@@ -503,10 +497,9 @@ if lat and lon:
     except Exception:
         st.warning("Unable to extract value at this location")
 
-st.plotly_chart(fig, width='stretch')
+st.plotly_chart(fig)#, width='stretch')
 
-
-# Timeseries for selected location
+# timeseries for selected location
 if lat is not None and lon is not None:
     st.subheader("📈 Timeseries for Selected Day")
 
@@ -538,7 +531,7 @@ if lat is not None and lon is not None:
         loc_series = compute_heat_index(T_loc, R_loc)
         units = "°F"
 
-    # Make DataFrame for Plotly
+    # Make df for plotly
     df_ts = pd.DataFrame({
         "time": loc_series.time.values,
         "City Mean": city_series.values,
@@ -571,9 +564,9 @@ if lat is not None and lon is not None:
         yaxis_title=f"{var_choice} ({units})",
         height=400
     )
-    st.plotly_chart(fig_ts, width='stretch')
+    st.plotly_chart(fig_ts)#, width='stretch')
 
-    # CSV download
+    # csv download
     csv = df_ts.to_csv().encode("utf-8")
     st.download_button(
         label="Download timeseries CSV",
@@ -581,7 +574,6 @@ if lat is not None and lon is not None:
         file_name=f"{var_choice}_timeseries_{selected_date.date()}.csv",
         mime="text/csv"
     )
-
 
 # Footer
 st.markdown("---")
