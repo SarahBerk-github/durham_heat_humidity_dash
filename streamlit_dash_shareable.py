@@ -384,10 +384,11 @@ if var_choice == "Heat Index":
         pass
 #AT and Rh
 else:
+    label_units = {"Air Temperature": "°F", "Relative Humidity": "%"} # to add to the color bar
     fig = px.imshow(
         da_small,
         origin="lower",
-        labels={'x': '', 'y': '', 'color': var_choice},
+        labels={'x': '', 'y': '', 'color': f"{var_choice} ({label_units[var_choice]})"},
         color_continuous_scale="Reds" if var_choice == "Air Temperature" else "Blues"
     )
     fig.data[0].opacity = opacity
