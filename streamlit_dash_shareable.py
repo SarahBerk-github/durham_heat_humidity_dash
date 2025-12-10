@@ -189,12 +189,12 @@ selected_date = st.date_input(
 date_str = selected_date.strftime("%Y%m%d")
 
 # clear the cache if the date has changed, stops the system from crashing 
-#if "last_selected_date" not in st.session_state:
-#    st.session_state.last_selected_date = selected_date
+if "last_selected_date" not in st.session_state:
+    st.session_state.last_selected_date = selected_date
 
-#if selected_date != st.session_state.last_selected_date:
-#    st.cache_data.clear()
-#    st.session_state.last_selected_date = selected_date
+if selected_date != st.session_state.last_selected_date:
+    st.cache_data.clear()
+    st.session_state.last_selected_date = selected_date
 
 
 # Find filename containing the date
@@ -217,13 +217,13 @@ def load_data(path):
 #st.write("NetCDF exists?", os.path.exists(netcdf_filepath))
 #st.write("File size:", os.path.getsize(netcdf_filepath) if os.path.exists(netcdf_filepath) else "N/A")
 # clear the old net cdf from the cache, but not the csv of city means
-if "last_selected_file" not in st.session_state:
-    st.session_state.last_selected_file = None
+#if "last_selected_file" not in st.session_state:
+#    st.session_state.last_selected_file = None
 
-if st.session_state.last_selected_file != selected_filename:
+#if st.session_state.last_selected_file != selected_filename:
     # remove cached NetCDF for previous file
-    load_data.clear()
-    st.session_state.last_selected_file = selected_filename
+#    load_data.clear()
+#    st.session_state.last_selected_file = selected_filename
 
 
 ds = load_data(netcdf_filepath)
@@ -271,7 +271,6 @@ time_selected = st.select_slider("Select time:", options=ds.time.values)
 basemap = st.sidebar.radio("Map style:", ["Satellite", "Street Map"])
 opacity = st.sidebar.slider("Transparency", 0.0, 1.0, 0.5, 0.05)
 downsample_factor = st.sidebar.number_input("Downsample factor", 1, 20, 4, 1)
-
 
 
 # get array
