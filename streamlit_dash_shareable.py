@@ -178,6 +178,15 @@ selected_date = st.date_input(
 
 date_str = selected_date.strftime("%Y%m%d")
 
+# clear the cache if the date has changed, stops the system from crashing 
+if "last_selected_date" not in st.session_state:
+    st.session_state.last_selected_date = selected_date
+
+if selected_date != st.session_state.last_selected_date:
+    st.cache_data.clear()
+    st.session_state.last_selected_date = selected_date
+
+
 # Find filename containing the date
 matching = [f for f in filenames if date_str in f]
 if not matching:
@@ -241,8 +250,11 @@ def categorise_heat_index(hi):
 # user controls
 var_choice = st.radio("Select variable:", ["Air Temperature", "Relative Humidity", "Heat Index"])
 time_selected = st.select_slider("Select time:", options=ds.time.values)
-opacity = st.sidebar.slider("Transparency", 0.0, 1.0, 0.9, 0.05)
+basemap = st.sidebar.radio("Map style:", ["Satellite", "Street Map"])
+opacity = st.sidebar.slider("Transparency", 0.0, 1.0, 0.5, 0.05)
 downsample_factor = st.sidebar.number_input("Downsample factor", 1, 20, 4, 1)
+
+
 
 # get array
 if var_choice in ["Air Temperature", "Relative Humidity"]:
@@ -330,24 +342,30 @@ if var_choice == "Heat Index":
             name=level,
             showlegend=True
         ))
-    # --- Add static satellite image underneath ---
-    sat_img = Image.open(r"durham_satellite_bbox.png")
-    buffered = io.BytesIO()
-    sat_img.save(buffered, format="PNG")
-    sat_base64 = base64.b64encode(buffered.getvalue()).decode()
+    # add static  image underneath 
+    try:
+        bg_path = "durham_satellite_bbox.png" if basemap == "Satellite" else "durham_streets_bbox.png"
+        bg_img = Image.open(bg_path)
+        buffered = io.BytesIO()
+        bg_img.save(buffered, format="PNG")
+        bg_base64 = base64.b64encode(buffered.getvalue()).decode()
 
-    fig.add_layout_image(
-        dict(
-            source="data:image/png;base64," + sat_base64,
-            xref="x", yref="y",
-            x=lon_min, y=lat_max,
-            sizex=lon_max - lon_min,
-            sizey=lat_max - lat_min,
-            sizing="stretch",
-            opacity=1,        # use sidebar transparency
-            layer="below"           # puts satellite below HI layer
+        fig.add_layout_image(
+            dict(
+                source="data:image/png;base64," + bg_base64,
+                xref="x", yref="y",
+                x=lon_min, y=lat_max,
+                sizex=lon_max - lon_min,
+                sizey=lat_max - lat_min,
+                sizing="stretch",
+                opacity=1,        # use sidebar transparency
+                layer="below"           # puts satellite below HI layer
+            )
         )
-    )
+
+    except FileNotFoundError:
+        # satellite image missing — continue without it
+        pass
 
 # -------------------------
 # Air Temp / RH branch (unchanged)
@@ -364,24 +382,27 @@ else:
     fig.update_xaxes(visible=False, showgrid=False)
     fig.update_layout(height=500, margin=dict(l=0, r=0, t=0, b=0))
 
-    # Add static satellite image (if you have it)
+    # add static  image underneath 
     try:
-        sat_img = Image.open(r"durham_satellite_bbox.png")
+        bg_path = "durham_satellite_bbox.png" if basemap == "Satellite" else "durham_streets_bbox.png"
+        bg_img = Image.open(bg_path)
         buffered = io.BytesIO()
-        sat_img.save(buffered, format="PNG")
-        sat_base64 = base64.b64encode(buffered.getvalue()).decode()
+        bg_img.save(buffered, format="PNG")
+        bg_base64 = base64.b64encode(buffered.getvalue()).decode()
 
         fig.add_layout_image(
             dict(
-                source="data:image/png;base64," + sat_base64,
+                source="data:image/png;base64," + bg_base64,
                 xref="x", yref="y",
                 x=lon_min, y=lat_max,
-                sizex=lon_max - lon_min, sizey=lat_max - lat_min,
+                sizex=lon_max - lon_min,
+                sizey=lat_max - lat_min,
                 sizing="stretch",
-                opacity=1,
-                layer="below"
+                opacity=1,        # use sidebar transparency
+                layer="below"           # puts satellite below HI layer
             )
         )
+
     except FileNotFoundError:
         # satellite image missing — continue without it
         pass
@@ -395,13 +416,20 @@ lat = lon = None
 
 MAPBOX_TOKEN = st.secrets["MAPBOX_TOKEN"]
 
+# Durham bounding box - want to limit the search to here
+lon_min = -79.00747291257709
+lon_max = -78.75454745095128
+lat_min = 35.86640498625444
+lat_max = 36.13696655321311
+
 def geocode_mapbox(query):
     """Return (lat, lon, place_name) from Mapbox Geocoding API."""
     url = f"https://api.mapbox.com/geocoding/v5/mapbox.places/{query}.json"
     params = {
         "access_token": MAPBOX_TOKEN,
         "limit": 1,
-        "types": "address,place,locality,neighborhood,poi"
+        "types": "address,place,locality,neighborhood,poi",
+         "bbox": f"{lon_min},{lat_min},{lon_max},{lat_max}"
     }
 
     response = requests.get(url, params=params)
@@ -428,8 +456,6 @@ if user_location:
         lat, lon, place_name = result
         st.success(f"Found location: {place_name}")
         st.write(f"Lat: {lat:.4f}, Lon: {lon:.4f}")
-
-
 
 
 # streamlit blocks Nominatim :'(
